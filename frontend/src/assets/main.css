@@ -1,0 +1,361 @@
+/* =====================================================
+   GLOBAL RESET
+===================================================== */
+
+* {
+
+    box-sizing: border-box;
+
+    margin: 0;
+
+    padding: 0;
+
+}
+
+
+html,
+body,
+#app {
+
+    width: 100%;
+
+    min-width: 100%;
+
+    min-height: 100%;
+
+}
+
+
+/* =====================================================
+   HTML / BODY
+===================================================== */
+
+html,
+body {
+
+    min-height: 100vh;
+
+}
+
+
+body {
+
+    width: 100%;
+
+    min-height: 100vh;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #f5f7fa;
+
+    color: #1f2937;
+
+    overflow-x: hidden;
+
+}
+
+
+/* =====================================================
+   APP
+===================================================== */
+
+#app {
+
+    width: 100%;
+
+    min-width: 100%;
+
+    min-height: 100vh;
+
+    margin: 0;
+
+    padding: 0;
+
+}
+
+
+/* =====================================================
+   LINKS
+===================================================== */
+
+a {
+
+    text-decoration: none;
+
+    color: inherit;
+
+}
+
+
+/* =====================================================
+   FORM ELEMENTS
+===================================================== */
+
+button,
+input,
+textarea,
+select {
+
+    font: inherit;
+
+}
+
+
+button {
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   CIVIC LENS PAGE LAYOUT
+===================================================== */
+
+/*
+ * IMPORTANT:
+ *
+ * The sidebar is NOT position: fixed.
+ *
+ * It uses position: sticky.
+ *
+ * Because the sidebar remains a normal flex item,
+ * its width is automatically reserved.
+ *
+ * Therefore:
+ *
+ * SIDEBAR        MAIN CONTENT
+ * 250px          remaining screen width
+ *
+ * There is NO overlap.
+ */
+
+.page-layout {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    width: 100%;
+
+    min-height: 100vh;
+
+}
+
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+
+.main-content {
+
+    /*
+     * flex: 1 means the content takes all remaining
+     * width after the sidebar.
+     */
+
+    flex: 1;
+
+    width: auto;
+
+    min-width: 0;
+
+    min-height: 100vh;
+
+    padding: 32px;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+
+}
+
+
+/* =====================================================
+   MAIN CONTENT SCROLLING
+===================================================== */
+
+/*
+ * We deliberately allow the page itself to scroll.
+ *
+ * The sidebar uses sticky positioning and therefore
+ * remains visible while the page scrolls.
+ *
+ * This is safer than creating a second scrollbar.
+ */
+
+.page-layout {
+
+    overflow: visible;
+
+}
+
+
+/* =====================================================
+   COMMON CARD
+===================================================== */
+
+.card {
+
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 24px;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.06);
+
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.btn-primary {
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 12px 20px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0a5fc4,
+            #00c9b1
+        );
+
+    color: white;
+
+    font-weight: 600;
+
+}
+
+
+.btn-secondary {
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 10px;
+
+    padding: 12px 20px;
+
+    background: white;
+
+}
+
+
+/* =====================================================
+   FORMS
+===================================================== */
+
+.form-group {
+
+    margin-bottom: 18px;
+
+}
+
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+}
+
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+
+    width: 100%;
+
+    padding: 12px 14px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 9px;
+
+    outline: none;
+
+}
+
+
+.form-group textarea {
+
+    min-height: 120px;
+
+    resize: vertical;
+
+}
+
+
+/* =====================================================
+   MESSAGES
+===================================================== */
+
+.error {
+
+    color: #dc2626;
+
+    margin-bottom: 15px;
+
+}
+
+
+.success {
+
+    color: #16a34a;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .main-content {
+
+        padding: 18px;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    /*
+     * On very small screens the sidebar becomes
+     * narrower so that the actual page content still
+     * has enough room.
+     */
+
+    .sidebar {
+
+        width: 210px;
+
+        min-width: 210px;
+
+    }
+
+
+    .main-content {
+
+        padding: 15px;
+
+    }
+
+}
