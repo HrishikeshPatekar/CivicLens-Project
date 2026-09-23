@@ -25,7 +25,7 @@
                 </div>
                 <h3>Email Support</h3>
                 <p class="highlight">
-                    <a href="mailto:support@civiclens.gov.in">support@civiclens.gov.in</a>
+                    <a href="mailto:civiclensg@gmail.com">civiclensg@gmail.com</a>
                 </p>
                 <p>We typically respond within 2 working days.</p>
             </div>
