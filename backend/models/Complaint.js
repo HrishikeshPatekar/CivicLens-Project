@@ -50,6 +50,12 @@ const complaintSchema = new mongoose.Schema(
                 type: Number,
                 required: true,
             },
+
+            // Area fields (used by the Analytics area filter)
+            state: String,
+            district: String,
+            city: String,
+            pincode: String,
         },
 
         media: [
