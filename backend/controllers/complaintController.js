@@ -58,6 +58,10 @@ const createComplaint = async (
             address,
             latitude,
             longitude,
+            state,
+            district,
+            city,
+            pincode,
         } = req.body || {};
 
 
@@ -208,6 +212,18 @@ const createComplaint = async (
 
                     longitude:
                         Number(longitude),
+
+                    state:
+                        state?.trim() || undefined,
+
+                    district:
+                        district?.trim() || undefined,
+
+                    city:
+                        city?.trim() || undefined,
+
+                    pincode:
+                        pincode?.trim() || undefined,
                 },
 
                 media,
