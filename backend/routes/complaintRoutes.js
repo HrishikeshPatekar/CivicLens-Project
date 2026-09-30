@@ -36,7 +36,7 @@ router.get(
 router.post(
     "/",
     protect,
-    upload.array("media", 10),
+    upload.array("media"),
     createComplaint
 );
 
