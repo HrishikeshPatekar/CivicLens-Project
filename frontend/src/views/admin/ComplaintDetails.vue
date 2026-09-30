@@ -169,33 +169,7 @@
                             Photos and videos submitted by the citizen.
                         </p>
 
-                        <div class="media-grid">
-
-                            <div
-                                v-for="(media, index) in complaint.media"
-                                :key="index"
-                                class="media-card"
-                            >
-
-                                <!-- IMAGE -->
-                                <img
-                                    v-if="media.type === 'image'"
-                                    :src="`http://localhost:5000${media.url}`"
-                                    :alt="media.originalName"
-                                />
-
-                                <!-- VIDEO -->
-                                <video
-                                    v-else-if="media.type === 'video'"
-                                    :src="`http://localhost:5000${media.url}`"
-                                    controls
-                                ></video>
-
-                                <div class="media-name">
-                                    {{ media.originalName }}
-                                </div>
-                            </div>
-                        </div>
+                        <MediaGallery :media="complaint.media" />
                     </div>
                     <div
                         v-else
@@ -419,6 +393,9 @@ import {
 
 import AdminSidebar from
     "../../components/AdminSidebar.vue";
+
+import MediaGallery from
+    "../../components/MediaGallery.vue";
 
 import api from
     "../../services/api";
