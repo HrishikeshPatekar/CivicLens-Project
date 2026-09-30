@@ -124,11 +124,16 @@
                         </label>
 
                         <input
+                            ref="fileInput"
                             type="file"
                             multiple
                             accept="image/*,video/*"
                             @change="handleFiles"
                         />
+
+                        <small v-if="selectedFiles.length">
+                            {{ selectedFiles.length }} file(s) selected
+                        </small>
                     </div>
 
                     <div
@@ -136,10 +141,19 @@
                         class="media-preview"
                     >
                         <div
-                            v-for="(media, index) in selectedFiles"
-                            :key="index"
+                            v-for="(media, index) in previewFiles"
+                            :key="media.id"
                             class="media-box"
                         >
+                            <button
+                                type="button"
+                                class="remove-btn"
+                                aria-label="Remove file"
+                                @click="removeFile(index)"
+                            >
+                                ✕
+                            </button>
+
                             <img
                                 v-if="
                                     media.type.startsWith('image')
@@ -157,7 +171,26 @@
                                 {{ media.name }}
                             </span>
                         </div>
+
+                        <button
+                            v-if="!showAll && hiddenCount > 0"
+                            type="button"
+                            class="more-box"
+                            @click="showAll = true"
+                        >
+                            +{{ hiddenCount }}
+                            <small>more</small>
+                        </button>
                     </div>
+
+                    <button
+                        v-if="showAll && selectedFiles.length > 4"
+                        type="button"
+                        class="show-less"
+                        @click="showAll = false"
+                    >
+                        Show less
+                    </button>
 
                     <button
                         class="btn-primary submit"
@@ -176,7 +209,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { computed, onBeforeUnmount, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import CitizenSidebar from "../../components/CitizenSidebar.vue";
 import api from "../../services/api";
@@ -188,6 +221,10 @@ const error = ref("");
 
 const suggestions = ref([]);
 const selectedFiles = ref([]);
+const fileInput = ref(null);
+
+const MAX_VISIBLE = 4;
+const showAll = ref(false);
 
 const form = reactive({
     title: "",
@@ -233,15 +270,62 @@ const selectLocation = (place) => {
 };
 
 const handleFiles = (event) => {
-    const files = Array.from(event.target.files);
+    const newFiles = Array.from(event.target.files);
 
-    selectedFiles.value = files.map((file) => ({
-        file,
-        name: file.name,
-        type: file.type,
-        preview: URL.createObjectURL(file),
-    }));
+    // Keep the files that were already selected and add the new ones.
+    // (Previously the list was replaced, so old photos disappeared.)
+    const existingKeys = new Set(
+        selectedFiles.value.map((m) => m.key)
+    );
+
+    for (const file of newFiles) {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+
+        if (existingKeys.has(key)) continue;
+
+        existingKeys.add(key);
+
+        selectedFiles.value.push({
+            id: `${key}-${Math.random()}`,
+            key,
+            file,
+            name: file.name,
+            type: file.type,
+            preview: URL.createObjectURL(file),
+        });
+    }
+
+    // Reset the input so choosing the same file again still fires @change
+    if (fileInput.value) {
+        fileInput.value.value = "";
+    }
 };
+
+const previewFiles = computed(() =>
+    showAll.value
+        ? selectedFiles.value
+        : selectedFiles.value.slice(0, MAX_VISIBLE)
+);
+
+const hiddenCount = computed(() =>
+    Math.max(selectedFiles.value.length - MAX_VISIBLE, 0)
+);
+
+const removeFile = (index) => {
+    URL.revokeObjectURL(selectedFiles.value[index].preview);
+    selectedFiles.value.splice(index, 1);
+    error.value = "";
+
+    if (selectedFiles.value.length <= MAX_VISIBLE) {
+        showAll.value = false;
+    }
+};
+
+onBeforeUnmount(() => {
+    selectedFiles.value.forEach((m) =>
+        URL.revokeObjectURL(m.preview)
+    );
+});
 
 const submitComplaint = async () => {
     error.value = "";
@@ -342,6 +426,7 @@ const submitComplaint = async () => {
 }
 
 .media-box {
+    position: relative;
     width: 130px;
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -364,6 +449,55 @@ const submitComplaint = async () => {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.more-box {
+    width: 130px;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    background: #111827;
+    color: white;
+    font-size: 26px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.more-box small {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.show-less {
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(17, 24, 39, 0.8);
+    color: white;
+    font-size: 12px;
+    line-height: 22px;
+    cursor: pointer;
 }
 
 .submit {
