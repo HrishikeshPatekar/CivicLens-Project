@@ -179,6 +179,25 @@
                 </div>
 
 
+                <!-- Uploaded evidence -->
+                <div class="timeline-card">
+
+                    <h2>
+                        Uploaded Photos &amp; Videos
+                    </h2>
+
+                    <MediaGallery
+                        v-if="complaint.media && complaint.media.length"
+                        :media="complaint.media"
+                    />
+
+                    <div v-else class="empty-history">
+                        No photos or videos were uploaded with this complaint.
+                    </div>
+
+                </div>
+
+
                 <!-- Status timeline -->
                 <div class="timeline-card">
 
@@ -392,6 +411,9 @@ import {
 
 import CitizenSidebar
     from "../../components/CitizenSidebar.vue";
+
+import MediaGallery
+    from "../../components/MediaGallery.vue";
 
 import api
     from "../../services/api";
