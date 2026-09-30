@@ -47,6 +47,72 @@
             </div>
 
 
+            <!-- AREA FILTER -->
+
+            <div class="area-filter">
+
+                <div class="filter-field">
+                    <label>State</label>
+
+                    <select v-model="filters.state">
+                        <option value="">All states</option>
+                        <option
+                            v-for="item in stateOptions"
+                            :key="item"
+                            :value="item"
+                        >
+                            {{ item }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label>City</label>
+
+                    <select v-model="filters.city">
+                        <option value="">All cities</option>
+                        <option
+                            v-for="item in cityOptions"
+                            :key="item"
+                            :value="item"
+                        >
+                            {{ item }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label>Pincode</label>
+
+                    <select v-model="filters.pincode">
+                        <option value="">All pincodes</option>
+                        <option
+                            v-for="item in pincodeOptions"
+                            :key="item"
+                            :value="item"
+                        >
+                            {{ item }}
+                        </option>
+                    </select>
+                </div>
+
+                <button
+                    v-if="hasFilters"
+                    type="button"
+                    class="clear-filter"
+                    @click="clearFilters"
+                >
+                    Clear filters
+                </button>
+
+                <span class="filter-count">
+                    Showing {{ complaints.length }}
+                    of {{ allComplaints.length }} complaints
+                </span>
+
+            </div>
+
+
             <!-- LOADING -->
 
             <div
@@ -487,7 +553,9 @@
 import {
     computed,
     onMounted,
+    reactive,
     ref,
+    watch,
 } from "vue";
 
 import AdminSidebar from
@@ -497,8 +565,17 @@ import api from
     "../../services/api";
 
 
-const complaints =
+// Every complaint from the server
+const allComplaints =
     ref([]);
+
+// Area filters (State -> City -> Pincode)
+const filters =
+    reactive({
+        state: "",
+        city: "",
+        pincode: "",
+    });
 
 const loading =
     ref(false);
@@ -525,7 +602,7 @@ const loadAnalytics =
                     "/admin/complaints"
                 );
 
-            complaints.value =
+            allComplaints.value =
                 Array.isArray(
                     response.data
                 )
@@ -551,6 +628,185 @@ const loadAnalytics =
         }
 
     };
+
+
+/* =========================================
+   AREA (STATE / CITY / PINCODE)
+========================================= */
+
+// Uses the saved area fields when they exist (new complaints).
+// Older complaints only have the address text, so the area is
+// read from it: "..., City, District, State, Pincode, India"
+const getArea =
+    (complaint) => {
+
+        const loc =
+            complaint.location || {};
+
+        if (
+            loc.state ||
+            loc.city ||
+            loc.pincode
+        ) {
+            return {
+                state: loc.state || "",
+                city: loc.city || loc.district || "",
+                pincode: loc.pincode || "",
+            };
+        }
+
+        const parts =
+            (loc.address || "")
+                .split(",")
+                .map(p => p.trim())
+                .filter(Boolean);
+
+        if (
+            parts.length &&
+            /^india$/i.test(
+                parts[parts.length - 1]
+            )
+        ) {
+            parts.pop();
+        }
+
+        let pincode = "";
+
+        if (
+            parts.length &&
+            /^\d{4,7}$/.test(
+                parts[parts.length - 1]
+            )
+        ) {
+            pincode = parts.pop();
+        }
+
+        const state =
+            parts.length > 1
+                ? parts.pop()
+                : "";
+
+        const district =
+            parts.length > 1
+                ? parts.pop()
+                : "";
+
+        const city =
+            parts.length > 1
+                ? parts[parts.length - 1]
+                : district;
+
+        return { state, city, pincode };
+
+    };
+
+
+const sortedUnique =
+    (values) =>
+        [...new Set(values.filter(Boolean))]
+            .sort((a, b) =>
+                a.localeCompare(b)
+            );
+
+
+// Only states that actually have complaints
+const stateOptions =
+    computed(() =>
+        sortedUnique(
+            allComplaints.value.map(
+                c => getArea(c).state
+            )
+        )
+    );
+
+const cityOptions =
+    computed(() =>
+        sortedUnique(
+            allComplaints.value
+                .map(getArea)
+                .filter(a =>
+                    !filters.state ||
+                    a.state === filters.state
+                )
+                .map(a => a.city)
+        )
+    );
+
+const pincodeOptions =
+    computed(() =>
+        sortedUnique(
+            allComplaints.value
+                .map(getArea)
+                .filter(a =>
+                    (
+                        !filters.state ||
+                        a.state === filters.state
+                    ) &&
+                    (
+                        !filters.city ||
+                        a.city === filters.city
+                    )
+                )
+                .map(a => a.pincode)
+        )
+    );
+
+// Changing a bigger area clears the smaller ones
+watch(
+    () => filters.state,
+    () => {
+        filters.city = "";
+        filters.pincode = "";
+    }
+);
+
+watch(
+    () => filters.city,
+    () => {
+        filters.pincode = "";
+    }
+);
+
+const hasFilters =
+    computed(() =>
+        !!(
+            filters.state ||
+            filters.city ||
+            filters.pincode
+        )
+    );
+
+const clearFilters =
+    () => {
+        filters.state = "";
+        filters.city = "";
+        filters.pincode = "";
+    };
+
+// Everything below (cards, charts) uses this filtered list
+const complaints =
+    computed(() =>
+        allComplaints.value.filter(c => {
+
+            const a = getArea(c);
+
+            return (
+                (
+                    !filters.state ||
+                    a.state === filters.state
+                ) &&
+                (
+                    !filters.city ||
+                    a.city === filters.city
+                ) &&
+                (
+                    !filters.pincode ||
+                    a.pincode === filters.pincode
+                )
+            );
+
+        })
+    );
 
 
 /* =========================================
@@ -1646,6 +1902,54 @@ onMounted(
 
     }
 
+}
+
+
+.area-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 25px;
+    padding: 18px 20px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 170px;
+}
+
+.filter-field label {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.filter-field select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+}
+
+.clear-filter {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-count {
+    margin-left: auto;
+    color: #6b7280;
+    font-size: 14px;
 }
 
 </style>
